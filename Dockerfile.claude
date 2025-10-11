@@ -1,0 +1,115 @@
+# Use as base
+FROM ubuntu:22.04
+
+ARG ERLANG_VERSION
+ARG ELIXIR_VERSION
+ARG ELIXIR_FULL_VERSION
+ARG KERL_CONFIGURE_OPTIONS
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV ERLANGMK_CAP_VER "OTP-$ERLANG_VERSION"
+ENV KERL_CONFIGURE_OPTIONS "$KERL_CONFIGURE_OPTIONS"
+ENV kiex_url "https://raw.githubusercontent.com/kawbo/kiex/master/kiex"
+ENV LANG en_US.UTF-8
+ENV LC_ALL C.UTF-8
+
+RUN apt-get update && apt-get install -y \
+    apt-transport-https \
+    autoconf \
+    automake \
+    bash \
+    build-essential \
+    ca-certificates \
+    cmake \
+    curl \
+    g++ \
+    gcc \
+    git \
+    gnupg \
+    jq \
+    liblz4-dev \
+    libncurses5-dev \
+    libsnappy-dev \
+    libssl-dev \
+    locales \
+    locales-all \
+    lsb-release \
+    make \
+    mc \
+    nano \
+    openssl \
+    perl \
+    python3 \
+    python3-pip \
+    rsync \
+    software-properties-common \
+    tcsh \
+    unzip \
+    vim \
+    wget
+
+RUN pip3 install --no-cache-dir awscli || pip3 install --no-cache-dir awscli --break-system-packages
+
+RUN wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor > hashicorp-archive-keyring.gpg && \
+    install -o root -g root -m 644 hashicorp-archive-keyring.gpg /usr/share/keyrings/ && \
+    echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" > /etc/apt/sources.list.d/hashicorp.list
+
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
+      https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+      > /etc/apt/sources.list.d/docker.list
+
+# Add nodeJS repo
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+
+# Install common tools
+RUN apt-get update && apt-get install -y \
+	ansible \
+	terraform \
+	docker-ce-cli \
+	nodejs \
+	vagrant \
+	net-tools
+
+RUN npm install -g @anthropic-ai/claude-code
+
+# install kerl, build correct version of erlang
+WORKDIR /root/kerl
+RUN \
+    curl -O https://raw.githubusercontent.com/kerl/kerl/4.1.1/kerl && \
+    chmod a+x kerl
+
+RUN echo "KERL_CONFIGURE_OPTIONS is $KERL_CONFIGURE_OPTIONS"
+
+RUN ./kerl build $ERLANG_VERSION $ERLANGMK_CAP_VER && \
+    ./kerl install $ERLANGMK_CAP_VER ~/erlang/$ERLANGMK_CAP_VER && \
+    ./kerl cleanup all && \
+    rm -rf ~/.kerl/archives/*
+
+# install kiex
+RUN \
+    curl -sSL $kiex_url | bash -s install_kiex
+
+# build elixir on top of correct version of erlang
+RUN . $(~/kerl/kerl path $ERLANGMK_CAP_VER)/activate && \
+    ~/.kiex/bin/kiex install $ELIXIR_VERSION
+
+SHELL ["/bin/bash", "-c"]
+
+# update mix
+RUN . $(~/kerl/kerl path $ERLANGMK_CAP_VER)/activate && \
+    source ~/.kiex/elixirs/elixir-${ELIXIR_FULL_VERSION}.env && \
+    mix local.rebar --force && \
+    mix local.hex --force
+
+RUN mkdir /root/projects
+
+# Set working directory to /root/projects
+WORKDIR /root/projects
+
+# Activate Erlang and Elixir globally for all shell sessions
+RUN echo "source $(/root/kerl/kerl path OTP-${ERLANG_VERSION})/activate" >> /root/.bashrc && \
+    echo "source /root/.kiex/elixirs/elixir-${ELIXIR_FULL_VERSION}.env" >> /root/.bashrc
+
+# Default to a shell prompt
+CMD ["bash"]

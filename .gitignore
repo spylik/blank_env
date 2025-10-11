@@ -1,0 +1,14 @@
+# Editors
+*~
+
+# macos preview files
+.DS_Store
+
+temp/*
+
+# Claude stuff
+.claude*
+.npm/*
+.config/*
+
+**/node_modules/*

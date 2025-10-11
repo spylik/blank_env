@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  claude-blank-dev-env:
+    build:
+      context: .
+      dockerfile: Dockerfile.claude
+      args:
+        ERLANG_VERSION: ${ERLANG_VERSION}
+        ELIXIR_VERSION: ${ELIXIR_VERSION}
+        ELIXIR_FULL_VERSION: ${ELIXIR_FULL_VERSION}
+        KERL_CONFIGURE_OPTIONS: ${KERL_CONFIGURE_OPTIONS}
+    environment:
+      - ERLANG_VERSION=${ERLANG_VERSION}
+      - ELIXIR_VERSION=${ELIXIR_VERSION}
+      - ELIXIR_FULL_VERSION=${ELIXIR_FULL_VERSION}
+      - KERL_CONFIGURE_OPTIONS=${KERL_CONFIGURE_OPTIONS}
+      - IS_SANDBOX=1
+    volumes:
+      - ./:/root/
+      - /var/run/docker.sock:/var/run/docker.sock
+    working_dir: /root/projects
+    stdin_open: true
+    tty: true
+    command: ["claude", "--dangerously-skip-permissions"]
