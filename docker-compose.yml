@@ -17,9 +17,10 @@ services:
       - KERL_CONFIGURE_OPTIONS=${KERL_CONFIGURE_OPTIONS}
       - IS_SANDBOX=1
     volumes:
-      - ./:/root/
+      - ./:/root/claude
       - /var/run/docker.sock:/var/run/docker.sock
-    working_dir: /root/projects
+    working_dir: /root/claude/projects
     stdin_open: true
     tty: true
-    command: ["claude", "--dangerously-skip-permissions"]
+#    command: ["bash", "-l"]
+    command: ["bash", "-c", "source /root/erlang/OTP-${ERLANG_VERSION}/activate && source /root/.kiex/elixirs/elixir-${ELIXIR_FULL_VERSION}.env && claude --dangerously-skip-permissions"]

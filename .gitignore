@@ -10,5 +10,9 @@ temp/*
 .claude*
 .npm/*
 .config/*
+.bash_history
+.viminfo
 
 **/node_modules/*
+
+projects/*
