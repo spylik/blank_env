@@ -6,6 +6,9 @@
 
 temp/*
 
+# SSH keys for container access
+temp/ssh/*
+
 # Claude stuff
 .claude*
 .npm/*

@@ -19,8 +19,14 @@ services:
     volumes:
       - ./:/root/claude
       - /var/run/docker.sock:/var/run/docker.sock
+      - ssh_keys:/root/.ssh
     working_dir: /root/claude/projects
     stdin_open: true
     tty: true
+    ports:
+      - "3222:3222"
 #    command: ["bash", "-l"]
     command: ["bash", "-c", "source /root/erlang/OTP-${ERLANG_VERSION}/activate && source /root/.kiex/elixirs/elixir-${ELIXIR_FULL_VERSION}.env && claude --dangerously-skip-permissions"]
+
+volumes:
+  ssh_keys:
