@@ -15,6 +15,7 @@ temp/ssh/*
 .config/*
 .bash_history
 .viminfo
+.vim/*
 
 **/node_modules/*
 
