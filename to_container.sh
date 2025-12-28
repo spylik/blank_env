@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration
-CONTAINER_NAME="claude-blank-dev-env"
+CONTAINER_NAME="blank_env_claude-blank-dev-env"
 SSH_PORT="3222"
 TEMP_DIR="./temp/ssh"
 PRIVATE_KEY="${TEMP_DIR}/id_rsa"
