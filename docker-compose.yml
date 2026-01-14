@@ -20,6 +20,7 @@ services:
       - ELIXIR_VERSION=${ELIXIR_VERSION}
       - ELIXIR_FULL_VERSION=${ELIXIR_FULL_VERSION}
       - KERL_CONFIGURE_OPTIONS=${KERL_CONFIGURE_OPTIONS}
+      - CLAUDE_ENV_FILE=/root/claude/load-project-env.sh
     volumes:
       - ./:/root/claude
       - /var/run/docker.sock:/var/run/docker.sock
