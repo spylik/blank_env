@@ -12,7 +12,10 @@ ENV KERL_CONFIGURE_OPTIONS "$KERL_CONFIGURE_OPTIONS"
 ENV kiex_url "https://raw.githubusercontent.com/kawbo/kiex/master/kiex"
 ENV LANG en_US.UTF-8
 ENV LC_ALL C.UTF-8
-
+ENV DISABLE_TELEMETRY 1
+ENV DISABLE_ERROR_REPORTING 1
+ENV CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 1
+ENV USE_BUILTIN_RIPGREP 0
 RUN apt-get update && apt-get install -y \
     apt-transport-https \
     autoconf \
@@ -50,7 +53,8 @@ RUN apt-get update && apt-get install -y \
     unzip \
     vim \
     wget \
-	devscripts
+	devscripts \
+	ripgrep
 
 RUN pip3 install --no-cache-dir awscli || pip3 install --no-cache-dir awscli --break-system-packages
 
@@ -73,7 +77,8 @@ RUN apt-get update && apt-get install -y \
 	docker-ce-cli \
 	nodejs \
 	vagrant \
-	net-tools
+	net-tools \
+	direnv
 
 RUN npm install -g @anthropic-ai/claude-code
 
@@ -121,6 +126,17 @@ WORKDIR /root/claude/projects
 RUN echo 'if [ -f ~/.bashrc ]; then . ~/.bashrc; fi' >> /root/.bash_profile
 RUN echo "source $(/root/kerl/kerl path OTP-${ERLANG_VERSION})/activate" >> /root/.bashrc
 RUN echo "source /root/.kiex/elixirs/elixir-${ELIXIR_FULL_VERSION}.env" >> /root/.bashrc
+
+# Configure direnv for automatic environment variable loading
+RUN echo 'eval "$(direnv hook bash)"' >> /root/.bashrc
+# For non-interactive shells, automatically evaluate direnv
+RUN echo '# Auto-load direnv in non-interactive shells' >> /root/.bashrc && \
+    echo 'if [ -z "$PS1" ]; then' >> /root/.bashrc && \
+    echo '    if [ -f "$PWD/.envrc" ] && direnv status | grep -q "Found RC allowed true"; then' >> /root/.bashrc && \
+    echo '        eval "$(direnv export bash 2>/dev/null || true)"' >> /root/.bashrc && \
+    echo '    fi' >> /root/.bashrc && \
+    echo 'fi' >> /root/.bashrc
+ENV BASH_ENV=/root/.bashrc
 
 # Configure SSH server
 RUN mkdir -p /var/run/sshd /root/.ssh && \
