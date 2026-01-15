@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y \
     gcc \
     git \
     gnupg \
+	lsof \
     jq \
     liblz4-dev \
     libncurses5-dev \
