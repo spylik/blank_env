@@ -12,6 +12,8 @@ services:
         KERL_CONFIGURE_OPTIONS: ${KERL_CONFIGURE_OPTIONS}
     environment:
       - CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+      - CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+      - CLAUDE_CODE_EFFORT_LEVEL=high
       - DISABLE_ERROR_REPORTING=1
       - DISABLE_TELEMETRY=1
       - USE_BUILTIN_RIPGREP=0
@@ -31,7 +33,7 @@ services:
     ports:
       - "3222:3222"
 #    command: ["bash", "-l"]
-    command: ["bash", "-c", "source /root/erlang/OTP-${ERLANG_VERSION}/activate && source /root/.kiex/elixirs/elixir-${ELIXIR_FULL_VERSION}.env && claude --dangerously-skip-permissions"]
+    command: ["bash", "-c", "source /root/erlang/OTP-${ERLANG_VERSION}/activate && source /root/.kiex/elixirs/elixir-${ELIXIR_FULL_VERSION}.env && claude update && claude --dangerously-skip-permissions"]
 
 volumes:
   ssh_keys:

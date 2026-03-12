@@ -15,6 +15,8 @@ ENV LC_ALL C.UTF-8
 ENV DISABLE_TELEMETRY 1
 ENV DISABLE_ERROR_REPORTING 1
 ENV CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 1
+ENV CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS 1
+ENV CLAUDE_CODE_EFFORT_LEVEL high
 ENV USE_BUILTIN_RIPGREP 0
 RUN apt-get update && apt-get install -y \
     apt-transport-https \
@@ -82,7 +84,7 @@ RUN apt-get update && apt-get install -y \
 	net-tools \
 	direnv
 
-RUN npm install -g @anthropic-ai/claude-code
+RUN curl -fsSL https://claude.ai/install.sh | bash
 
 # install kerl, build correct version of erlang
 WORKDIR /root/kerl
@@ -165,6 +167,8 @@ RUN echo '#!/bin/bash' > /entrypoint.sh && \
     echo '# Execute the main command' >> /entrypoint.sh && \
     echo 'exec "$@"' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
+
+RUN curl --proto '=https' --tlsv1.2 -LsSf https://github.com/connerohnesorge/conclaude/releases/latest/download/conclaude-installer.sh | sh
 
 EXPOSE 3222
 
