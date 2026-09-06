@@ -2,6 +2,7 @@ version: "3.9"
 
 services:
   claude-blank-dev-env:
+    container_name: ${COMPOSE_PROJECT_NAME}
     build:
       context: .
       dockerfile: Dockerfile.claude
@@ -22,18 +23,23 @@ services:
       - ELIXIR_VERSION=${ELIXIR_VERSION}
       - ELIXIR_FULL_VERSION=${ELIXIR_FULL_VERSION}
       - KERL_CONFIGURE_OPTIONS=${KERL_CONFIGURE_OPTIONS}
-      - CLAUDE_ENV_FILE=/root/claude/load-project-env.sh
+      - CLAUDE_ENV_FILE=/root/load-project-env.sh
     volumes:
-      - ./:/root/claude
+      - ./.claude:/root/.claude
+      - ./.claude.json:/root/.claude.json
+      - ./.claude.json.backup:/root/.claude.json.backup
+      - ./.vim:/root/.vim
+      - ./.vimrc:/root/.vimrc
+      - ./projects:/root/projects
       - /var/run/docker.sock:/var/run/docker.sock
       - ssh_keys:/root/.ssh
-    working_dir: /root/claude/projects
+    working_dir: /root/projects
     stdin_open: true
     tty: true
     ports:
       - "3222:3222"
 #    command: ["bash", "-l"]
-    command: ["bash", "-c", "source /root/erlang/OTP-${ERLANG_VERSION}/activate && source /root/.kiex/elixirs/elixir-${ELIXIR_FULL_VERSION}.env && claude update && claude --dangerously-skip-permissions"]
+    command: ["bash", "-c", "source /root/erlang/OTP-${ERLANG_VERSION}/activate && source /root/.kiex/elixirs/elixir-${ELIXIR_FULL_VERSION}.env && ~/.local/bin/claude update && ~/.local/bin/claude --dangerously-skip-permissions"]
 
 volumes:
   ssh_keys:

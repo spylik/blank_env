@@ -60,6 +60,15 @@ RUN apt-get update && apt-get install -y \
 	devscripts \
 	ripgrep
 
+RUN mkdir -p /root/claude/projects
+COPY load-project-env.sh /root/
+#RUN ln -sf /root/claude/.claude /root/.claude
+#RUN ln -sf /root/claude/.npm /root/.npm
+#RUN ln -sf /root/claude/.claude.json /root/.claude.json
+#RUN ln -sf /root/claude/.claude.json.backup /root/.claude.json.backup
+#RUN ln -sf /root/claude/.vim /root/.vim
+#RUN ln -sf /root/claude/.vimrc /root/.vimrc
+
 RUN pip3 install --no-cache-dir awscli || pip3 install --no-cache-dir awscli --break-system-packages
 
 RUN wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor > hashicorp-archive-keyring.gpg && \
@@ -115,16 +124,8 @@ RUN . $(~/kerl/kerl path $ERLANGMK_CAP_VER)/activate && \
     mix local.rebar --force && \
     mix local.hex --force
 
-RUN mkdir -p /root/claude/projects
-RUN ln -sf /root/claude/.claude /root/.claude
-RUN ln -sf /root/claude/.npm /root/.npm
-RUN ln -sf /root/claude/.claude.json /root/.claude.json
-RUN ln -sf /root/claude/.claude.json.backup /root/.claude.json.backup
-RUN ln -sf /root/claude/.vim /root/.vim
-RUN ln -sf /root/claude/.vimrc /root/.vimrc
-
 # Set working directory to /root/projects
-WORKDIR /root/claude/projects
+WORKDIR /root/projects
 
 # Activate Erlang and Elixir globally for all shell sessions
 RUN echo 'if [ -f ~/.bashrc ]; then . ~/.bashrc; fi' >> /root/.bash_profile
