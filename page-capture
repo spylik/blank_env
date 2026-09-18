@@ -1,0 +1,71 @@
+#!/usr/bin/env node
+// Capture what a page actually renders and says: screenshot + console + page errors +
+// failed requests. Written for looking at UI without a display - the console and network
+// halves matter as much as the picture, because a layout that "looks wrong" is usually a
+// 404 on a stylesheet or a JS error, and a screenshot alone will not tell you which.
+//
+//   page-capture <url> [-o out.png] [--full] [--width 1280] [--height 800] [--wait 500]
+//
+// CHROME_PATH overrides the browser binary; otherwise playwright resolves its own.
+
+const { chromium } = require('playwright');
+
+const args = process.argv.slice(2);
+if (args.length === 0 || args[0] === '-h' || args[0] === '--help') {
+  console.error('usage: page-capture <url> [-o out.png] [--full] [--width N] [--height N] [--wait MS]');
+  process.exit(args.length === 0 ? 1 : 0);
+}
+
+const opt = (flag, fallback) => {
+  const i = args.indexOf(flag);
+  return i === -1 ? fallback : args[i + 1];
+};
+
+const url = args[0];
+const out = opt('-o', 'page.png');
+const width = parseInt(opt('--width', '1280'), 10);
+const height = parseInt(opt('--height', '800'), 10);
+const wait = parseInt(opt('--wait', '500'), 10);
+const fullPage = args.includes('--full');
+
+(async () => {
+  const browser = await chromium.launch({
+    executablePath: process.env.CHROME_PATH || undefined,
+    args: ['--no-sandbox', '--disable-gpu'],
+  });
+  const page = await browser.newPage({ viewport: { width, height } });
+
+  const console_lines = [];
+  const problems = [];
+  page.on('console', m => console_lines.push(`[${m.type()}] ${m.text()}`));
+  page.on('pageerror', e => problems.push(`[pageerror] ${e.message}`));
+  page.on('requestfailed', r =>
+    problems.push(`[requestfailed] ${r.url()} - ${(r.failure() || {}).errorText}`));
+
+  let status = 'n/a';
+  try {
+    const resp = await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+    if (resp) status = `${resp.status()} ${resp.statusText()}`;
+  } catch (e) {
+    problems.push(`[navigation] ${e.message}`);
+  }
+
+  // a response that is not 2xx/3xx is the single most common reason a page "renders wrong"
+  await page.waitForTimeout(wait);
+  await page.screenshot({ path: out, fullPage });
+  await browser.close();
+
+  console.log(`url        : ${url}`);
+  console.log(`status     : ${status}`);
+  console.log(`screenshot : ${out}${fullPage ? ' (full page)' : ` (${width}x${height})`}`);
+  console.log(`console    : ${console_lines.length} message(s)`);
+  console_lines.forEach(l => console.log(`   ${l}`));
+  console.log(`problems   : ${problems.length}`);
+  problems.forEach(l => console.log(`   ${l}`));
+
+  // non-zero when the page itself is broken, so this is usable in a check
+  process.exit(problems.length > 0 ? 2 : 0);
+})().catch(e => {
+  console.error(`page-capture failed: ${e.message}`);
+  process.exit(1);
+});

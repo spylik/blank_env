@@ -62,12 +62,6 @@ RUN apt-get update && apt-get install -y \
 
 RUN mkdir -p /root/claude/projects
 COPY load-project-env.sh /root/
-#RUN ln -sf /root/claude/.claude /root/.claude
-#RUN ln -sf /root/claude/.npm /root/.npm
-#RUN ln -sf /root/claude/.claude.json /root/.claude.json
-#RUN ln -sf /root/claude/.claude.json.backup /root/.claude.json.backup
-#RUN ln -sf /root/claude/.vim /root/.vim
-#RUN ln -sf /root/claude/.vimrc /root/.vimrc
 
 RUN pip3 install --no-cache-dir awscli || pip3 install --no-cache-dir awscli --break-system-packages
 
@@ -170,6 +164,19 @@ RUN echo '#!/bin/bash' > /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
 RUN curl --proto '=https' --tlsv1.2 -LsSf https://github.com/connerohnesorge/conclaude/releases/latest/download/conclaude-installer.sh | sh
+
+# ---------------- headless browser, for looking at UI without a display ----------------
+ENV PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright
+ENV NODE_PATH=/opt/browser-tools/node_modules
+RUN mkdir -p /opt/browser-tools && cd /opt/browser-tools && \
+    npm init -y > /dev/null 2>&1 && \
+    npm install --no-audit --no-fund playwright && \
+    npx playwright install --with-deps chromium && \
+    npm cache clean --force
+
+# capture a page: screenshot + console + page errors + failed requests
+COPY page-capture /usr/local/bin/page-capture
+RUN chmod +x /usr/local/bin/page-capture
 
 EXPOSE 3222
 
