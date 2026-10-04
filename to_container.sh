@@ -1,8 +1,12 @@
 #!/bin/bash
 
-source "$(dirname "$0")/dev-env.sh"
+if [ -z "${SSH_HOST_PORT}" ]; then
+    echo "Error: SSH_HOST_PORT is not set. Run 'direnv allow' in this folder first."
+    exit 1
+fi
 
 # Configuration
+SERVICE_NAME="claude-blank-dev-env"
 SSH_PORT="${SSH_HOST_PORT}"
 TEMP_DIR="./temp/ssh"
 PRIVATE_KEY="${TEMP_DIR}/id_rsa"
