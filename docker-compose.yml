@@ -3,6 +3,7 @@ version: "3.9"
 services:
   claude-blank-dev-env:
     container_name: ${COMPOSE_PROJECT_NAME}
+    hostname: ${COMPOSE_PROJECT_NAME}
     build:
       context: .
       dockerfile: Dockerfile.claude
@@ -37,7 +38,7 @@ services:
     stdin_open: true
     tty: true
     ports:
-      - "3222:3222"
+      - "${SSH_HOST_PORT:-3222}:3222"
 #    command: ["bash", "-l"]
     command: ["bash", "-c", "source /root/erlang/OTP-${ERLANG_VERSION}/activate && source /root/.kiex/elixirs/elixir-${ELIXIR_FULL_VERSION}.env && ~/.local/bin/claude update && ~/.local/bin/claude --dangerously-skip-permissions"]
 

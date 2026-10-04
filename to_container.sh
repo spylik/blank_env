@@ -1,8 +1,13 @@
 #!/bin/bash
 
+if [ -z "${SSH_HOST_PORT}" ]; then
+    echo "Error: SSH_HOST_PORT is not set. Run 'direnv allow' in this folder first."
+    exit 1
+fi
+
 # Configuration
-CONTAINER_NAME="blank_env_claude-blank-dev-env"
-SSH_PORT="3222"
+SERVICE_NAME="claude-blank-dev-env"
+SSH_PORT="${SSH_HOST_PORT}"
 TEMP_DIR="./temp/ssh"
 PRIVATE_KEY="${TEMP_DIR}/id_rsa"
 
@@ -13,12 +18,15 @@ mkdir -p "${TEMP_DIR}"
 extract_key() {
     echo "Extracting SSH private key from container..."
 
-    # Find the actual container name
-    ACTUAL_CONTAINER=$(docker-compose ps | grep "${CONTAINER_NAME}" | awk '{print $1}')
+    # Find the running container of this project (also matches `docker-compose run` containers)
+    ACTUAL_CONTAINER=$(docker ps \
+        --filter "label=com.docker.compose.project=${COMPOSE_PROJECT_NAME}" \
+        --filter "label=com.docker.compose.service=${SERVICE_NAME}" \
+        --format '{{.Names}}' | head -n 1)
 
     if [ -z "$ACTUAL_CONTAINER" ]; then
-        echo "Error: Container with name pattern '${CONTAINER_NAME}' is not running."
-        echo "Please start it with: docker-compose run -d ${CONTAINER_NAME}"
+        echo "Error: No running '${SERVICE_NAME}' container for project '${COMPOSE_PROJECT_NAME}'."
+        echo "Please start it with: ./start_dev_session.sh"
         exit 1
     fi
 
