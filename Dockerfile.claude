@@ -64,6 +64,8 @@ RUN mkdir -p /root/claude/projects
 COPY load-project-env.sh /root/
 
 RUN pip3 install --no-cache-dir awscli || pip3 install --no-cache-dir awscli --break-system-packages
+# Python helpers Claude uses for e2e probing of the backends (GraphQL over HTTP and Phoenix channels over WebSocket)
+RUN pip3 install --no-cache-dir websockets requests || pip3 install --no-cache-dir websockets requests --break-system-packages
 
 RUN wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor > hashicorp-archive-keyring.gpg && \
     install -o root -g root -m 644 hashicorp-archive-keyring.gpg /usr/share/keyrings/ && \

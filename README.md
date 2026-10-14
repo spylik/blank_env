@@ -9,3 +9,10 @@ Each copy of this repo (e.g. `blank_env`, `blank_env_second`) gets its own compo
 project and SSH port, derived from the folder name in `.envrc` (same name → same
 port, in the 20000-29999 range), so direnv must be allowed in each copy.
 `./start_dev_session.sh` prints the port and `./to_container.sh` uses the same one.
+
+## Secrets for the container
+
+Copy `.env_secret.example` to `.env_secret` and fill in AWS credentials and any API keys the
+session needs. The file is gitignored and compose passes it into the container as environment
+variables (`env_file`, optional: a missing file is not an error). Rotate keys there, never in
+`docker-compose.yml` or `.envrc`.

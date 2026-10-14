@@ -20,3 +20,6 @@ temp/ssh/*
 **/node_modules/*
 
 projects/*
+
+# Secrets passed into the container via compose env_file (never committed)
+.env_secret
