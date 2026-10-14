@@ -26,8 +26,7 @@ services:
       - KERL_CONFIGURE_OPTIONS=${KERL_CONFIGURE_OPTIONS}
       - CLAUDE_ENV_FILE=/root/load-project-env.sh
     env_file:
-      - path: .env_secret
-        required: false
+      - .env_secret
     volumes:
       - ./.claude:/root/.claude
       - ./.claude.json:/root/.claude.json
